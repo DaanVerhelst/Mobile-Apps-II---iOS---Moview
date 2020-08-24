@@ -13,13 +13,23 @@ class PopularMoviesTableViewController: UITableViewController {
     
     var popularMovies = [APIMovie]()
     
+    let movieInfoController = MovieInfoController()
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        if let savedPopularMovies = APIMovie.loadPopularMovies() {
-            popularMovies = savedPopularMovies
-        } else {
-            popularMovies = APIMovie.loadSampleMovies()
+        movieInfoController.fetchPopularMovies(){
+            (popularMovies) in
+            if let popularMovies = popularMovies {
+                self.updateUI(with: popularMovies)
+            }
+        }
+    }
+    
+    func updateUI(with popularMovies: [APIMovie]){
+        DispatchQueue.main.async {
+            self.popularMovies = popularMovies
+            self.tableView.reloadData()
         }
     }
     
@@ -30,9 +40,14 @@ class PopularMoviesTableViewController: UITableViewController {
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "popularMovieIdentifier", for: indexPath)
         
-        let popularMovie = popularMovies[indexPath.row]
-        cell.textLabel?.text = popularMovie.originalTitle
+        configure(cell, forItemAt: indexPath)
         return cell
+    }
+    
+    func configure(_ cell: UITableViewCell, forItemAt indexPath: IndexPath) {
+        let movie = popularMovies[indexPath.row]
+        cell.textLabel?.text = movie.originalTitle
+        cell.detailTextLabel?.text = movie.overview
     }
     
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {

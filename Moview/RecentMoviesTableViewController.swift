@@ -10,15 +10,25 @@ import Foundation
 import UIKit
 
 class RecentMoviesTableViewController: UITableViewController {
-    var recentMovies = [APIMovie]()
+    var recentMovies = [RecentMovie]()
+    
+    let movieInfoController = MovieInfoController()
     
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        if let savedRecentMovies = APIMovie.loadRecentMovies() {
-            recentMovies = savedRecentMovies
-        } else {
-            recentMovies = APIMovie.loadSampleMovies()
+        movieInfoController.fetchRecentMovies(){
+            (recentMovies) in
+            if let recentMovies = recentMovies {
+                self.updateUI(with: recentMovies)
+            }
+        }
+    }
+    
+    func updateUI(with recentMovies: [RecentMovie]){
+        DispatchQueue.main.async {
+            self.recentMovies = recentMovies
+            self.tableView.reloadData()
         }
     }
     
@@ -35,10 +45,10 @@ class RecentMoviesTableViewController: UITableViewController {
     }
     
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        if let navController = segue.destination as? UINavigationController, let apiMovieDetailViewController = navController.topViewController as? APIMovieDetailViewController {
+        if let navController = segue.destination as? UINavigationController, let recentMoviesDetailViewController = navController.topViewController as? RecentMoviesDetailViewController {
             let indexPath = tableView.indexPathForSelectedRow!
             let selectedAPIMovie = recentMovies[indexPath.row]
-            apiMovieDetailViewController.apiMovie = selectedAPIMovie
+            recentMoviesDetailViewController.apiMovie = selectedAPIMovie
         }
     }
     
