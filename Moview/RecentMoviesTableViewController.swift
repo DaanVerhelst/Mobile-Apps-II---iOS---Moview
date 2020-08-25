@@ -10,7 +10,7 @@ import Foundation
 import UIKit
 
 class RecentMoviesTableViewController: UITableViewController {
-    var recentMovies = [RecentMovie]()
+    var recentMovies = [APIMovie]()
     
     let movieInfoController = MovieInfoController()
     
@@ -25,7 +25,7 @@ class RecentMoviesTableViewController: UITableViewController {
         }
     }
     
-    func updateUI(with recentMovies: [RecentMovie]){
+    func updateUI(with recentMovies: [APIMovie]){
         DispatchQueue.main.async {
             self.recentMovies = recentMovies
             self.tableView.reloadData()
@@ -37,10 +37,24 @@ class RecentMoviesTableViewController: UITableViewController {
     }
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: "recentMovieIdentifier", for: indexPath)
-        
+        let cell = tableView.dequeueReusableCell(withIdentifier: "recentMovieIdentifier", for: indexPath) as! CustomCell
+
         let popularMovie = recentMovies[indexPath.row]
-        cell.textLabel?.text = popularMovie.originalTitle
+        cell.title?.text = popularMovie.originalTitle
+        
+        if let path = popularMovie.imagePath {
+            movieInfoController.fetchImage(url: path){
+                (image) in
+                guard let image = image else { return }
+                DispatchQueue.main.async {
+                    if let currentIndexPath = self.tableView.indexPath(for: cell), currentIndexPath != indexPath {
+                        return
+                    }
+                    
+                    cell.imageViewCell?.image = image
+                }
+            }
+        }
         return cell
     }
     
@@ -55,4 +69,9 @@ class RecentMoviesTableViewController: UITableViewController {
     @IBAction func unwindToPopularMovies(segue: UIStoryboardSegue){
         
     }
+}
+
+class CustomCell: UITableViewCell {
+    @IBOutlet weak var title: UILabel!
+    @IBOutlet weak var imageViewCell: UIImageView!
 }

@@ -38,16 +38,24 @@ class PopularMoviesTableViewController: UITableViewController {
     }
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: "popularMovieIdentifier", for: indexPath)
+        let cell = tableView.dequeueReusableCell(withIdentifier: "popularMovieIdentifier", for: indexPath) as! CustomCell
         
-        configure(cell, forItemAt: indexPath)
-        return cell
-    }
-    
-    func configure(_ cell: UITableViewCell, forItemAt indexPath: IndexPath) {
         let movie = popularMovies[indexPath.row]
-        cell.textLabel?.text = movie.originalTitle
-        cell.detailTextLabel?.text = movie.overview
+        cell.title.text = movie.originalTitle
+        if let path = movie.imagePath {
+            movieInfoController.fetchImage(url: path){
+                (image) in
+                guard let image = image else { return }
+                DispatchQueue.main.async {
+                    if let currentIndexPath = self.tableView.indexPath(for: cell), currentIndexPath != indexPath {
+                        return
+                    }
+                    
+                    cell.imageViewCell?.image = image
+                }
+            }
+        }
+        return cell
     }
     
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
@@ -62,3 +70,5 @@ class PopularMoviesTableViewController: UITableViewController {
         
     }
 }
+
+
